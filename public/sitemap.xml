@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <!-- CHANGE https://instadown.app/ to your real live domain -->
+  <url>
+    <loc>https://instadown.app/</loc>
+    <lastmod>2026-03-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://instadown.app/og-image.jpg</image:loc>
+      <image:title>InstaDown – Instagram Reels Downloader</image:title>
+      <image:caption>Download Instagram Reels for free in HD quality without watermark</image:caption>
+    </image:image>
+  </url>
+</urlset>

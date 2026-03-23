@@ -1,0 +1,12 @@
+node_modules/
+.DS_Store
+.env
+npm-debug.log
+.gemini/
+*.mp4
+*.m4a
+ytdlp_temp/
+177*player-script.js
+out.txt
+test*.js
+test_download.m4a
