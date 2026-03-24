@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const declineBtn      = document.getElementById('decline-tc');
 
     // Backend API base
-    const API_BASE = 'http://localhost:5000';
+    const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000' : '';
 
     // ── Form Submit ──────────────────────────────────────────────────────
     form.addEventListener('submit', async (e) => {
