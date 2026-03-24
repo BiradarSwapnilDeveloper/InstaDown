@@ -97,7 +97,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── Render Result ─────────────────────────────────────────────────────
     function renderResult(data, url) {
         // Thumbnail
-        videoThumbnail.src = data.thumbnail || 'https://via.placeholder.com/400x700/1a1a2e/e1306c?text=No+Preview';
+        let thumbUrl = data.thumbnail || 'https://via.placeholder.com/400x700/1a1a2e/e1306c?text=No+Preview';
+        // Prefix with API_BASE if it's a relative API route
+        if (thumbUrl.startsWith('/')) {
+            thumbUrl = `${API_BASE}${thumbUrl}`;
+        }
+        
+        videoThumbnail.src = thumbUrl;
         videoThumbnail.onerror = () => {
             videoThumbnail.src = 'https://via.placeholder.com/400x700/1a1a2e/e1306c?text=No+Preview';
         };
@@ -140,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultContainer.classList.remove('hidden');
         setTimeout(() => {
             resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }, 120);
+        }, 300);
     }
 
     // ── Create Format Item ────────────────────────────────────────────────

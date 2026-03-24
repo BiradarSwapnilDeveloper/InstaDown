@@ -69,45 +69,40 @@ app.post('/api/info', async (req, res) => {
         let formats = [];
 
         if (info.formats) {
-            // Prefer formats that have both video and audio
-            const combined = info.formats
-                .filter(f => f.vcodec !== 'none' && f.acodec !== 'none' && f.url)
-                .map(f => ({
-                    itag: f.format_id,
-                    qualityLabel: f.format_note || f.resolution || f.height ? `${f.height}p` : 'Best Quality',
-                    container: f.ext || 'mp4',
-                    contentLength: formatStorage(f.filesize || f.filesize_approx),
-                    width: f.width,
-                    height: f.height,
-                    type: 'video'
-                }))
-                .sort((a, b) => (b.height || 0) - (a.height || 0));
+            // Filter for formats that have a URL and are not just audio
+            formats = info.formats
+                .filter(f => f.url && f.vcodec !== 'none')
+                .map(f => {
+                    let q = 'Best Quality';
+                    if (f.height) q = `${f.height}p`;
+                    else if (f.format_note) q = f.format_note;
+                    else if (f.resolution) q = f.resolution;
 
-            // Deduplicate by height
-            const seen = new Set();
-            for (const f of combined) {
-                const key = f.height || f.qualityLabel;
-                if (!seen.has(key)) {
-                    seen.add(key);
-                    formats.push(f);
-                }
-            }
-
-            // If no combined formats, try video-only or any available
-            if (formats.length === 0) {
-                const anyVideo = info.formats
-                    .filter(f => f.vcodec !== 'none' && f.url)
-                    .map(f => ({
+                    return {
                         itag: f.format_id,
-                        qualityLabel: f.height ? `${f.height}p` : (f.format_note || 'Video'),
+                        qualityLabel: q,
                         container: f.ext || 'mp4',
                         contentLength: formatStorage(f.filesize || f.filesize_approx),
-                        height: f.height,
+                        height: f.height || 0,
+                        width: f.width || 0,
+                        vcodec: f.vcodec,
+                        acodec: f.acodec,
                         type: 'video'
-                    }))
-                    .sort((a, b) => (b.height || 0) - (a.height || 0));
-                formats = anyVideo.slice(0, 3);
+                    };
+                })
+                // Sort by height descending
+                .sort((a, b) => b.height - a.height);
+
+            // Deduplicate by quality label and keep unique ones
+            const seen = new Set();
+            const uniqueFormats = [];
+            for (const f of formats) {
+                if (!seen.has(f.qualityLabel)) {
+                    seen.add(f.qualityLabel);
+                    uniqueFormats.push(f);
+                }
             }
+            formats = uniqueFormats.slice(0, 5); // Show up to 5 best options
         }
 
         // Fallback: use the best single format yt-dlp picks
@@ -123,7 +118,7 @@ app.post('/api/info', async (req, res) => {
 
         res.json({
             title: info.title || info.fulltitle || 'Instagram Reel',
-            thumbnail: info.thumbnail,
+            thumbnail: info.thumbnail ? `/api/proxy-image?url=${encodeURIComponent(info.thumbnail)}` : null,
             author: info.uploader || info.channel || info.uploader_id || 'Instagram User',
             duration: info.duration,
             formats: formats
@@ -241,6 +236,29 @@ app.get('/api/download', async (req, res) => {
             res.status(500).send('Failed to download the reel. The post may be private or unavailable.');
         }
         res.end();
+    }
+});
+
+// Proxy for thumbnails and other images to avoid Referer/CORS issues
+app.get('/api/proxy-image', async (req, res) => {
+    try {
+        const { url } = req.query;
+        if (!url) return res.status(400).send('URL required');
+
+        const response = await axios({
+            url: url,
+            method: 'GET',
+            responseType: 'stream',
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Referer': 'https://www.instagram.com/'
+            }
+        });
+
+        res.set('Content-Type', response.headers['content-type'] || 'image/jpeg');
+        response.data.pipe(res);
+    } catch (error) {
+        res.status(500).send('Proxy error');
     }
 });
 
