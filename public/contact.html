@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - InstaDown</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { padding: 40px 20px; overflow-y: auto; align-items: center; justify-content: flex-start; }
+        .policy-container { max-width: 800px; width: 100%; background: var(--card-bg); backdrop-filter: var(--glass-blur); border: 1px solid var(--card-border); padding: 40px; border-radius: 20px; color: var(--text-muted); line-height: 1.6; }
+        h1, h2 { color: var(--text-main); margin-bottom: 20px; }
+        p { margin-bottom: 15px; }
+        .back-btn { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-weight: 600; }
+        .contact-form { margin-top: 30px; display: flex; flex-direction: column; gap: 1rem; }
+        .input-item { display: flex; flex-direction: column; gap: 0.5rem; }
+        .input-item label { color: var(--text-main); font-weight: 500; }
+        .input-item input, .input-item textarea { background: rgba(0,0,0,0.25); border: 1px solid var(--card-border); padding: 0.75rem; border-radius: 12px; color: var(--text-main); outline: none; }
+        .input-item input:focus, .input-item textarea:focus { border-color: var(--primary); }
+        .submit-btn { background: var(--insta-gradient); color: white; border: none; padding: 1rem; border-radius: 12px; font-weight: 600; cursor: pointer; transition: transform 0.2s ease; margin-top: 1rem; }
+        .submit-btn:hover { transform: scale(1.02); }
+        .contact-info { margin-top: 2rem; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+        .info-card { background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 14px; text-align: center; }
+        .info-card i { color: var(--primary); font-size: 1.5rem; margin-bottom: 10px; }
+        .info-card h3 { color: var(--text-main); font-size: 1rem; margin-bottom: 5px; }
+
+        @media (max-width: 600px) { .contact-info { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="background">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+    <div class="policy-container">
+        <a href="/" class="back-btn">← Back to Home</a>
+        <h1>Contact Support</h1>
+        <p>If you're having trouble with InstaDown or have questions about our service, we're here to help.</p>
+
+        <form class="contact-form">
+            <div class="input-item">
+                <label for="name">Name</label>
+                <input type="text" id="name" placeholder="Your Name" required>
+            </div>
+            <div class="input-item">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="Email Address" required>
+            </div>
+            <div class="input-item">
+                <label for="msg">Message</label>
+                <textarea id="msg" rows="5" placeholder="Tell us how we can help..."></textarea>
+            </div>
+            <button type="submit" class="submit-btn" onclick="alert('Thank you! This is a demo version. Message not sent.'); return false;">Send Message</button>
+        </form>
+
+        <div class="contact-info">
+            <div class="info-card">
+                <i class="fa-solid fa-envelope"></i>
+                <h3>Email Support</h3>
+                <p>support@instadown.app</p>
+            </div>
+            <div class="info-card">
+                <i class="fa-solid fa-message"></i>
+                <h3>Response Time</h3>
+                <p>Typically within 24 hours</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

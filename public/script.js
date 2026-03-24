@@ -13,6 +13,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const durationBadge   = document.getElementById('duration-badge');
     const formatList      = document.getElementById('format-list');
 
+    // ── T&C Modal Elements ──
+    const tcModal         = document.getElementById('tc-modal');
+    const acceptBtn       = document.getElementById('accept-tc');
+    const declineBtn      = document.getElementById('decline-tc');
+
     // Backend API base
     const API_BASE = 'http://localhost:5000';
 
@@ -298,4 +303,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return wrapper;
     }
+
+    // ── T&C Modal Logic ──
+    function initTCModal() {
+        if (!tcModal) return;
+
+        const currentPath = window.location.pathname;
+        const policyPages = ['/privacy.html', '/terms.html', '/disclaimer.html', '/about.html', '/contact.html', '/cookies.html'];
+        const isPolicyPage = policyPages.some(page => currentPath.endsWith(page));
+
+        // Get current user email (Mock function - replace with real auth if available)
+        const getCurrentUserEmail = () => {
+             // In a real app, this would come from your auth provider (Google, Firebase, etc.)
+             return localStorage.getItem('user_email') || 'guest@instadown.app';
+        };
+
+        const userEmail = getCurrentUserEmail();
+        const lastAcceptedEmail = localStorage.getItem('tc_accepted_email');
+        const isAccepted = localStorage.getItem('tc_accepted') === 'true';
+
+        // 1. If we are on a policy page, don't show the popup (as requested)
+        if (isPolicyPage) {
+            tcModal.classList.remove('active');
+            return;
+        }
+
+        // 2. Logic: Show if not accepted, OR if email changed, OR if it's a reload (as user requested "reload kare to bhi dikhe")
+        // Note: To avoid being TOO annoying, we use a session flag so it only shows ONCE per session reload, 
+        // but re-appears if they close the tab and come back, or if email changes.
+        const sessionShown = sessionStorage.getItem('tc_shown_this_session');
+
+        if (!isAccepted || userEmail !== lastAcceptedEmail || !sessionShown) {
+            setTimeout(() => {
+                tcModal.classList.add('active');
+            }, 800);
+        }
+
+        acceptBtn.addEventListener('click', () => {
+            localStorage.setItem('tc_accepted', 'true');
+            localStorage.setItem('tc_accepted_email', userEmail);
+            sessionStorage.setItem('tc_shown_this_session', 'true');
+            tcModal.classList.remove('active');
+            
+            if (window.trackEvent) {
+                trackEvent('accept_terms', { user_email: userEmail });
+            }
+        });
+
+        declineBtn.addEventListener('click', () => {
+            tcModal.classList.remove('active');
+            sessionStorage.setItem('tc_shown_this_session', 'true');
+        });
+
+        // Detect potential email changes (you can call this from your login logic)
+        window.onUserLogin = (newEmail) => {
+            localStorage.setItem('user_email', newEmail);
+            if (newEmail !== lastAcceptedEmail) {
+                tcModal.classList.add('active');
+            }
+        };
+    }
+
+    initTCModal();
 });

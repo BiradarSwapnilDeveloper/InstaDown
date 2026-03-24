@@ -13,12 +13,15 @@
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <meta name="author" content="InstaDown">
     <meta name="language" content="English">
-    <meta name="revisit-after" content="3 days">
+    <meta name="revisit-after" content="1 days">
     <meta name="rating" content="general">
     <meta name="category" content="Tools, Downloader, Social Media">
     <meta name="theme-color" content="#e1306c">
     <meta name="application-name" content="InstaDown">
-    <meta name="generator" content="InstaDown v2.0">
+    <meta name="twitter:label1" content="Price">
+    <meta name="twitter:data1" content="Freeware">
+    <meta name="twitter:label2" content="Compatibility">
+    <meta name="twitter:data2" content="iOS, Android, Windows, Mac">
 
     <!-- Canonical URL — CHANGE THIS TO YOUR LIVE DOMAIN -->
     <link rel="canonical" href="https://instadown.app/">
@@ -402,14 +405,71 @@
         </section>
 
         <footer>
-            <div class="footer-links" style="margin-bottom: 1rem; display: flex; justify-content: center; gap: 1.5rem; font-size: 0.85rem;">
-                <a href="/privacy.html" style="color: var(--text-muted); text-decoration: none;">Privacy Policy</a>
-                <a href="/terms.html" style="color: var(--text-muted); text-decoration: none;">Terms of Service</a>
-                <a href="/sitemap.xml" style="color: var(--text-muted); text-decoration: none;">Sitemap</a>
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="logo">
+                        <div class="logo-icon">
+                            <i class="fa-brands fa-instagram"></i>
+                        </div>
+                        <span>InstaDown</span>
+                    </div>
+                    <p>The fastest and most reliable way to download Instagram Reels, Videos, and Posts in HD for free. No watermark, no login, just paste and save.</p>
+                </div>
+
+                <div class="footer-links-group">
+                    <h4>Quick Links</h4>
+                    <ul class="footer-links-list">
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/about.html">About Us</a></li>
+                        <li><a href="/contact.html">Contact Us</a></li>
+                        <li><a href="/sitemap.xml">Sitemap</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links-group">
+                    <h4>Legal</h4>
+                    <ul class="footer-links-list">
+                        <li><a href="/privacy.html">Privacy Policy</a></li>
+                        <li><a href="/terms.html">Terms of Service</a></li>
+                        <li><a href="/disclaimer.html">Disclaimer</a></li>
+                        <li><a href="/cookies.html">Cookies Policy</a></li>
+                    </ul>
+                </div>
             </div>
-            <p>&copy; 2026 InstaDown &nbsp;•&nbsp; Free Instagram Reels Downloader</p>
-            <p class="footer-note">InstaDown is not affiliated with Instagram or Meta. Only public posts are supported. Please respect creators' copyright.</p>
+
+            <div class="footer-bottom">
+                <p>&copy; 2026 InstaDown • Your Ultimate Social Media Companion</p>
+                <div class="footer-socials" style="display: flex; gap: 1rem; font-size: 1.2rem;">
+                    <a href="#" style="color: var(--text-muted);"><i class="fa-brands fa-facebook"></i></a>
+                    <a href="#" style="color: var(--text-muted);"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#" style="color: var(--text-muted);"><i class="fa-brands fa-instagram"></i></a>
+                </div>
+            </div>
+            
+            <p class="footer-note">InstaDown is an independent tool and is not affiliated with or endorsed by Instagram, Meta, or any social media platform. Only public content is supported. Users are responsible for complying with copyright laws.</p>
         </footer>
+    </div>
+
+    <!-- ── Privacy & Terms Popup ── -->
+    <div class="modal-overlay" id="tc-modal">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h2>Terms & Privacy Acceptance</h2>
+            <p>Welcome to InstaDown! Before you start downloading, please review and accept our policies. We don't store your personal data, but we use cookies for ads and analytics to keep the service free.</p>
+            
+            <div class="modal-links">
+                <a href="/terms.html">Terms of Service</a>
+                <a href="/privacy.html">Privacy Policy</a>
+                <a href="/disclaimer.html">Disclaimer</a>
+            </div>
+
+            <div class="modal-btns">
+                <button class="accept-btn" id="accept-tc">I Accept & Continue</button>
+                <button class="decline-btn" id="decline-tc">Later</button>
+            </div>
+        </div>
     </div>
 
     <!-- ════════════════════ AD: STICKY MOBILE BOTTOM BANNER (HIGH EARNING) -->
