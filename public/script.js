@@ -328,18 +328,17 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // 2. Logic: Show if not accepted, OR if email changed, OR if it's a reload (as user requested "reload kare to bhi dikhe")
-        // Note: To avoid being TOO annoying, we use a session flag so it only shows ONCE per session reload, 
-        // but re-appears if they close the tab and come back, or if email changes.
-        const sessionShown = sessionStorage.getItem('tc_shown_this_session');
+        // 2. Clear flags each time we refresh (to ensure it shows on EVERY reload)
+        sessionStorage.removeItem('tc_shown_this_session');
 
-        if (!isAccepted || userEmail !== lastAcceptedEmail || !sessionShown) {
-            setTimeout(() => {
-                tcModal.classList.add('active');
-            }, 800);
-        }
+        // 3. Logic: ALWAYS show on website reload (except policy pages), 
+        // as per the requirement "ya koi same gmail se website reload kare to bhi same pop up dikhe"
+        setTimeout(() => {
+            tcModal.classList.add('active');
+        }, 1200);
 
         acceptBtn.addEventListener('click', () => {
+            // Still save to localStorage for record, but won't stop the popup on next reload
             localStorage.setItem('tc_accepted', 'true');
             localStorage.setItem('tc_accepted_email', userEmail);
             sessionStorage.setItem('tc_shown_this_session', 'true');
