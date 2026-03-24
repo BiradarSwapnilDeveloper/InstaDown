@@ -1015,18 +1015,7 @@ footer {
 
 /* Sticky Bottom Ad – appears on mobile, high CTR */
 .ad-sticky-bottom {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: rgba(10, 10, 20, 0.95);
-    backdrop-filter: blur(12px);
-    border-top: 1px solid rgba(255,255,255,0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 6px 0 6px;
-    z-index: 999;
+    display: none !important; /* Removed as requested - was showing as a blank black line */
 }
 
 .ad-close-btn {
