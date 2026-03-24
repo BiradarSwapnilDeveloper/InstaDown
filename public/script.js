@@ -328,20 +328,23 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // 2. Clear flags each time we refresh (to ensure it shows on EVERY reload)
-        sessionStorage.removeItem('tc_shown_this_session');
+        // 2. Logic: Show if not accepted in CURRENT session
+        // Session storage survives reloads and back buttons but clears when the tab/window is closed.
+        // This solves "footer links pe back karne pe popup dikhne" issue.
+        const isAcceptedInSession = sessionStorage.getItem('tc_accepted_session') === 'true';
 
-        // 3. Logic: ALWAYS show on website reload (except policy pages), 
-        // as per the requirement "ya koi same gmail se website reload kare to bhi same pop up dikhe"
-        setTimeout(() => {
-            tcModal.classList.add('active');
-        }, 1200);
+        // Show if not accepted in this session, OR if user email changed from last time
+        if (!isAcceptedInSession || (userEmail && userEmail !== lastAcceptedEmail)) {
+            setTimeout(() => {
+                tcModal.classList.add('active');
+            }, 1000);
+        }
 
         acceptBtn.addEventListener('click', () => {
-            // Still save to localStorage for record, but won't stop the popup on next reload
+            // Save to session and local storage
+            sessionStorage.setItem('tc_accepted_session', 'true');
             localStorage.setItem('tc_accepted', 'true');
             localStorage.setItem('tc_accepted_email', userEmail);
-            sessionStorage.setItem('tc_shown_this_session', 'true');
             tcModal.classList.remove('active');
             
             if (window.trackEvent) {
@@ -349,15 +352,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        declineBtn.addEventListener('click', () => {
-            tcModal.classList.remove('active');
-            sessionStorage.setItem('tc_shown_this_session', 'true');
-        });
-
-        // Detect potential email changes (you can call this from your login logic)
+        // Detect potential email changes/login (calls from auth logic)
         window.onUserLogin = (newEmail) => {
             localStorage.setItem('user_email', newEmail);
-            if (newEmail !== lastAcceptedEmail) {
+            // On login, we FORCE re-acceptance by clearing the session flag
+            sessionStorage.removeItem('tc_accepted_session');
+            if (newEmail !== lastAcceptedEmail || !lastAcceptedEmail) {
+                tcModal.classList.add('active');
+            } else {
+                // Even if same email, if user explicitly asked to show on "same gmail login"
                 tcModal.classList.add('active');
             }
         };
