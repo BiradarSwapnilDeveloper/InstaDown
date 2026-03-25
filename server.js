@@ -69,9 +69,11 @@ app.post('/api/info', async (req, res) => {
         let formats = [];
 
         if (info.formats) {
-            // Filter for formats that have a URL and are not just audio
+            // Filter for formats that have a URL and have BOTH video and audio!
+            // Instagram high-quality (1080p) is often split into video-only and audio-only streams.
+            // Since we proxy the direct URL, we MUST pick a single file that contains both.
             formats = info.formats
-                .filter(f => f.url && f.vcodec !== 'none')
+                .filter(f => f.url && f.vcodec !== 'none' && f.acodec !== 'none' && f.acodec !== null)
                 .map(f => {
                     let q = 'Best Quality';
                     if (f.height) q = `${f.height}p`;
@@ -105,11 +107,11 @@ app.post('/api/info', async (req, res) => {
             formats = uniqueFormats.slice(0, 5); // Show up to 5 best options
         }
 
-        // Fallback: use the best single format yt-dlp picks
+        // Fallback: use the best single format yt-dlp picks (that has audio)
         if (formats.length === 0) {
             formats.push({
-                itag: 'best',
-                qualityLabel: 'Best Available',
+                itag: 'best[vcodec!=none][acodec!=none]/best',
+                qualityLabel: 'Best Combined',
                 container: 'mp4',
                 contentLength: 'Unknown size',
                 type: 'video'
@@ -158,7 +160,8 @@ app.get('/api/download', async (req, res) => {
             dumpSingleJson: true,
             noWarnings: true,
             noCheckCertificate: true,
-            format: itag && itag !== 'best' ? itag : 'best[ext=mp4]/best',
+            // Ensure we pick a combined format if itag is not specific
+            format: itag && itag !== 'best' ? itag : 'best[vcodec!=none][acodec!=none]/best',
             addHeader: [
                 'User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             ],
