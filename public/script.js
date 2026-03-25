@@ -316,7 +316,7 @@ function initTCModal() {
     // Get current user email (Mock function - replace with real auth if available)
     const getCurrentUserEmail = () => {
         // In a real app, this would come from your auth provider (Google, Firebase, etc.)
-        return localStorage.getItem('user_email') || 'guest@instadown.app';
+        return localStorage.getItem('user_email') || 'guest@instadown-sjv2.onrender.com';
     };
 
     const userEmail = getCurrentUserEmail();

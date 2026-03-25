@@ -9,12 +9,33 @@
     <style>
         body { padding: 40px 20px; overflow-y: auto; align-items: center; justify-content: flex-start; }
         .policy-container { max-width: 800px; width: 100%; background: var(--card-bg); backdrop-filter: var(--glass-blur); border: 1px solid var(--card-border); padding: 40px; border-radius: 20px; color: var(--text-muted); line-height: 1.6; }
+        @media (max-width: 600px) { body { padding: 20px 15px; } .policy-container { padding: 24px 16px; margin: 0 auto; } }
         h1, h2 { color: var(--text-main); margin-bottom: 20px; }
         p { margin-bottom: 15px; }
         ul { margin-left: 25px; margin-bottom: 20px; }
         li { margin-bottom: 8px; }
         .back-btn { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-weight: 600; }
     </style>
+    <!-- ════════════════════════════════════════════════
+         GOOGLE ANALYTICS 4
+    ════════════════════════════════════════════════ -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX', {
+            page_location: window.location.href,
+            send_page_view: true
+        });
+    </script>
+
+    <!-- ════════════════════════════════════════════════
+         GOOGLE ADSENSE AUTO ADS
+    ════════════════════════════════════════════════ -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3788374704176398"
+         crossorigin="anonymous"></script>
+    <meta name="google-adsense-account" content="ca-pub-3788374704176398">
 </head>
 <body>
     <div class="background">

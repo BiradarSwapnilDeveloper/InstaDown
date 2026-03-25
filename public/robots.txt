@@ -13,7 +13,7 @@ User-agent: anthropic-ai
 Disallow: /
 
 # Sitemap location — CHANGE to your real domain
-Sitemap: https://instadown.app/sitemap.xml
+Sitemap: https://instadown-sjv2.onrender.com/sitemap.xml
 
 # Crawl delay (helps with server load)
 Crawl-delay: 10
