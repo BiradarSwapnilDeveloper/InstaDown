@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en" prefix="og: https://ogp.me/ns#">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-WYB2TC00YJ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-WYB2TC00YJ');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 
@@ -64,27 +73,7 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
-    <!-- ════════════════════════════════════════════════
-         GOOGLE ANALYTICS 4
-         TODO: Replace G-XXXXXXXXXX with your real GA4 Measurement ID
-         Get it from: analytics.google.com → Admin → Data Streams
-    ════════════════════════════════════════════════ -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-XXXXXXXXXX', {
-            page_title: 'InstaDown Home',
-            page_location: window.location.href,
-            send_page_view: true
-        });
 
-        // Track key user events for GA4 (used for conversion optimization)
-        window.trackEvent = function(eventName, params) {
-            gtag('event', eventName, params || {});
-        };
-    </script>
 
     <!-- ════════════════════════════════════════════════
          GOOGLE ADSENSE AUTO ADS
