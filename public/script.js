@@ -3,44 +3,63 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlInput = document.getElementById('video-url');
     const fetchBtn = document.getElementById('fetch-btn');
     const loader = document.getElementById('loader');
-    const errorMsg = documcx
-    // Basic client-side Instagram URL check
-    if (!url.includes('instagram.com')) {
-        showError('Please paste a valid Instagram URL (e.g. instagram.com/reel/...)');
-        return;
-    }
+    const errorMsg = document.getElementById('error-message');
+    const errorText = document.getElementById('error-text');
+    const resultContainer = document.getElementById('result-container');
+    const videoThumbnail = document.getElementById('video-thumbnail');
+    const videoTitle = document.getElementById('video-title');
+    const videoAuthor = document.getElementById('video-author');
+    const durationBadge = document.getElementById('duration-badge');
+    const formatList = document.getElementById('format-list');
+    const tcModal = document.getElementById('tc-modal');
+    const acceptBtn = document.getElementById('accept-tc');
 
-    resetUI();
-    loader.classList.remove('hidden');
-    fetchBtn.disabled = true;
-    fetchBtn.style.opacity = '0.65';
+    const API_BASE = '';
 
-    try {
-        const response = await fetch(`${API_BASE}/api/info`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url })
-        });
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const url = urlInput.value.trim();
+        if (!url) return;
 
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.error || 'Failed to fetch reel details.');
+        // Basic client-side Instagram URL check
+        if (!url.includes('instagram.com')) {
+            showError('Please paste a valid Instagram URL (e.g. instagram.com/reel/...)');
+            return;
         }
 
-        renderResult(data, url);
+        resetUI();
+        loader.classList.remove('hidden');
+        fetchBtn.disabled = true;
+        fetchBtn.style.opacity = '0.65';
 
-    } catch (err) {
-        if (err.message === 'Failed to fetch') {
-            showError('Cannot connect to server. Make sure the backend (server.js) is running on port 5000.');
-        } else {
-            showError(err.message);
+        try {
+            const response = await fetch(`${API_BASE}/api/info`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to fetch reel details.');
+            }
+
+            renderResult(data, url);
+
+        } catch (err) {
+            if (err.message === 'Failed to fetch') {
+                showError('Cannot connect to server. Make sure the backend (server.js) is running on port 5000.');
+            } else {
+                showError(err.message);
+            }
+        } finally {
+            loader.classList.add('hidden');
+            fetchBtn.disabled = false;
+            fetchBtn.style.opacity = '1';
         }
-    } finally {
-        loader.classList.add('hidden');
-        fetchBtn.disabled = false;
-        fetchBtn.style.opacity = '1';
-    }
+    });
 });
 
 // ── Reset UI ─────────────────────────────────────────────────────────
