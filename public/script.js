@@ -60,7 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
             fetchBtn.style.opacity = '1';
         }
     });
-});
 
 // ── Reset UI ─────────────────────────────────────────────────────────
 function resetUI() {
@@ -202,7 +201,7 @@ function createFormatItem(format, url) {
         label.textContent = 'Connecting...';
 
         try {
-            const resp = await fetch(dlBtn.href.replace(dlBtn.innerHTML, '') || `${API_BASE}/api/download?url=${encodeURIComponent(url)}&itag=${format.itag}`);
+            const resp = await fetch(dlBtn.href);
 
             if (!resp.ok) {
                 throw new Error(`Server error: ${resp.status}`);
