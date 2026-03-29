@@ -186,6 +186,10 @@ function createFormatItem(format, url) {
     // Download click handler
     dlBtn.addEventListener('click', async (e) => {
         e.preventDefault();
+        
+        // Propeller Direct Link Ad
+        window.open("https://omg10.com/4/10802066", "_blank");
+
         if (dlBtn.getAttribute('data-downloading') === 'true') return;
 
         dlBtn.setAttribute('data-downloading', 'true');
