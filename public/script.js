@@ -188,7 +188,7 @@ function createFormatItem(format, url) {
         e.preventDefault();
         
         // Propeller Direct Link Ad
-        window.open("https://omg10.com/4/10802066", "_blank");
+        // window.open("https://omg10.com/4/10802066", "_blank");
 
         if (dlBtn.getAttribute('data-downloading') === 'true') return;
 
