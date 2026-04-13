@@ -1303,6 +1303,7 @@ footer {
     justify-content: center;
     gap: 1rem;
     margin-bottom: 1.5rem;
+    flex-wrap: wrap;
 }
 .platform-btn {
     padding: 0.6rem 1.25rem;
@@ -1316,6 +1317,19 @@ footer {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    white-space: nowrap;
+    font-size: 0.95rem;
+}
+@media (max-width: 480px) {
+    .platform-switcher {
+        gap: 0.5rem;
+    }
+    .platform-btn {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.85rem;
+        flex: 1 1 auto;
+        justify-content: center;
+    }
 }
 .platform-btn:hover {
     background: rgba(255, 255, 255, 0.1);
