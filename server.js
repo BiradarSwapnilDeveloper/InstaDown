@@ -20,10 +20,21 @@ function formatStorage(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-// Validate Instagram URLs
+// Validate Platform URLs
 function isInstagramUrl(url) {
     return /instagram\.com\/(p|reel|reels|tv|stories)\//i.test(url) ||
            /instagram\.com\/[^/]+\/(reel|p)\//i.test(url);
+}
+
+function isFacebookUrl(url) {
+    return /facebook\.com\//i.test(url) || 
+           /fb\.watch\//i.test(url) || 
+           /fb\.gg\//i.test(url) ||
+           /fb\.com\//i.test(url);
+}
+
+function isSupportedUrl(url) {
+    return isInstagramUrl(url) || isFacebookUrl(url);
 }
 
 // Normalize instagram URL - strip query params that can cause auth issues
@@ -46,13 +57,16 @@ app.post('/api/info', async (req, res) => {
             return res.status(400).json({ error: 'URL is required.' });
         }
 
-        if (!isInstagramUrl(url)) {
+        if (!isSupportedUrl(url)) {
             return res.status(400).json({
-                error: 'Only Instagram Reel/Post links are supported. Please paste a valid Instagram URL.'
+                error: 'Only Instagram and Facebook links are supported. Please paste a valid URL.'
             });
         }
 
-        const cleanUrl = normalizeInstagramUrl(url);
+        let cleanUrl = url;
+        if (isInstagramUrl(url)) {
+            cleanUrl = normalizeInstagramUrl(url);
+        }
 
         const info = await youtubedl(cleanUrl, {
             dumpSingleJson: true,
@@ -65,13 +79,13 @@ app.post('/api/info', async (req, res) => {
             ],
         });
 
-        // Extract video formats (with both video+audio in same stream — Instagram usually provides this)
+        // Extract video formats (with both video+audio in same stream if possible)
         let formats = [];
 
         if (info.formats) {
             // Filter for formats that have a URL and have BOTH video and audio!
-            // Instagram high-quality (1080p) is often split into video-only and audio-only streams.
-            // Since we proxy the direct URL, we MUST pick a single file that contains both.
+            // Instagram high-quality (1080p) is often split. Facebook has varying formats.
+            // Since we proxy the direct URL, we MUST pick a single file that contains both unless yt-dlp merges them (which we aren't doing natively on the fly).
             formats = info.formats
                 .filter(f => f.url && f.vcodec !== 'none' && f.acodec !== 'none' && f.acodec !== null)
                 .map(f => {
@@ -127,13 +141,13 @@ app.post('/api/info', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error fetching Instagram info:', error.message || error);
+        console.error('Error fetching info:', error.message || error);
 
-        let errorMsg = 'Failed to fetch reel info. Make sure the post is public and the URL is valid.';
+        let errorMsg = 'Failed to fetch video info. Make sure the post is public and the URL is valid.';
         if (error.message && error.message.includes('Private')) {
-            errorMsg = 'This Instagram post is private. Please use a public reel or post URL.';
+            errorMsg = 'This post is private. Please use a public reel or post URL.';
         } else if (error.message && error.message.includes('login')) {
-            errorMsg = 'Instagram requires login for this content. Only public reels are supported.';
+            errorMsg = 'This platform requires login for this content. Only public posts are supported.';
         }
 
         res.status(500).json({ error: errorMsg });
@@ -149,11 +163,14 @@ app.get('/api/download', async (req, res) => {
             return res.status(400).send('URL is required');
         }
 
-        if (!isInstagramUrl(url)) {
-            return res.status(400).send('Only Instagram URLs are supported');
+        if (!isSupportedUrl(url)) {
+            return res.status(400).send('Only Instagram and Facebook URLs are supported');
         }
 
-        const cleanUrl = normalizeInstagramUrl(url);
+        let cleanUrl = url;
+        if (isInstagramUrl(url)) {
+            cleanUrl = normalizeInstagramUrl(url);
+        }
 
         // Fetch info to get direct URL
         const info = await youtubedl(cleanUrl, {
@@ -192,8 +209,8 @@ app.get('/api/download', async (req, res) => {
         }
 
         // Sanitize filename
-        const rawTitle = info.title || info.fulltitle || 'instagram_reel';
-        const filename = rawTitle.replace(/[^\w\s\-\.]/gi, '').trim() || 'instagram_reel';
+        const rawTitle = info.title || info.fulltitle || 'video_download';
+        const filename = rawTitle.replace(/[^\w\s\-\.]/gi, '').trim() || 'video_download';
 
         res.setHeader('Content-Disposition', `attachment; filename="${filename}.${extension}"`);
         res.setHeader('Content-Type', 'video/mp4');
@@ -210,7 +227,7 @@ app.get('/api/download', async (req, res) => {
             maxRedirects: 10,
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Referer': 'https://www.instagram.com/',
+                'Referer': isFacebookUrl(url) ? 'https://www.facebook.com/' : 'https://www.instagram.com/',
                 'Accept': '*/*',
             }
         });
@@ -236,7 +253,7 @@ app.get('/api/download', async (req, res) => {
     } catch (error) {
         console.error('Download error:', error.message || error);
         if (!res.headersSent) {
-            res.status(500).send('Failed to download the reel. The post may be private or unavailable.');
+            res.status(500).send('Failed to download the video. The post may be private or unavailable.');
         }
         res.end();
     }
@@ -248,13 +265,15 @@ app.get('/api/proxy-image', async (req, res) => {
         const { url } = req.query;
         if (!url) return res.status(400).send('URL required');
 
+        const isFb = url.includes('fbcdn.net');
+
         const response = await axios({
             url: url,
             method: 'GET',
             responseType: 'stream',
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Referer': 'https://www.instagram.com/'
+                'Referer': isFb ? 'https://www.facebook.com/' : 'https://www.instagram.com/'
             }
         });
 

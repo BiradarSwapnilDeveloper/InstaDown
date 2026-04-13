@@ -1296,3 +1296,73 @@ footer {
         gap: 0.6rem;
     }
 }
+
+/* ── Platform Switcher ── */
+.platform-switcher {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.platform-btn {
+    padding: 0.6rem 1.25rem;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-muted);
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.platform-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+.platform-btn.active {
+    background: var(--insta-gradient);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 4px 15px rgba(225, 48, 108, 0.4);
+}
+.platform-btn:nth-child(2).active {
+    background: #1877F2;
+    box-shadow: 0 4px 15px rgba(24, 119, 242, 0.4);
+}
+
+/* ── Facebook Theme ── */
+body.fb-theme .logo-icon, body.fb-theme .hero-badge i, body.fb-theme .play-overlay {
+    color: #1877F2;
+}
+body.fb-theme .blob-1 { background: #1877F2; }
+body.fb-theme .blob-2 { background: #00A5F4; }
+body.fb-theme .blob-3 { background: #00C6FF; }
+body.fb-theme .gradient-text {
+    background: linear-gradient(135deg, #1877F2, #00C6FF);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+body.fb-theme #fetch-btn, body.fb-theme .step-num, body.fb-theme .seo-content > h2, body.fb-theme .accept-btn, body.fb-theme .progress-fill, body.fb-theme .download-btn {
+    background: linear-gradient(135deg, #1877F2, #00C6FF);
+    box-shadow: 0 6px 20px -5px rgba(24, 119, 242, 0.5);
+    border-color: transparent;
+}
+body.fb-theme .seo-content > h2 {
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    box-shadow: none;
+}
+body.fb-theme .quality-badge {
+    background: rgba(24, 119, 242, 0.15);
+    border-color: rgba(24, 119, 242, 0.3);
+    color: #60A5FA;
+}
+body.fb-theme .faq-item[open] summary::after {
+    color: #1877F2;
+}
+body.fb-theme .faq-item[open] {
+    border-color: rgba(24, 119, 242, 0.35);
+}

@@ -22,9 +22,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = urlInput.value.trim();
         if (!url) return;
 
-        // Basic client-side Instagram URL check
-        if (!url.includes('instagram.com')) {
-            showError('Please paste a valid Instagram URL (e.g. instagram.com/reel/...)');
+        // Basic client-side URL check
+        if (!url.includes('instagram.com') && !url.includes('facebook.com') && !url.includes('fb.watch') && !url.includes('fb.gg') && !url.includes('fb.com')) {
+            showError('Please paste a valid Instagram or Facebook URL');
             return;
         }
 
@@ -314,7 +314,10 @@ function initTCModal() {
     if (!tcModal) return;
 
     const currentPath = window.location.pathname;
-    const policyPages = ['/privacy.html', '/terms.html', '/disclaimer.html', '/about.html', '/contact.html', '/cookies.html'];
+    const policyPages = [
+        '/privacy.html', '/terms.html', '/disclaimer.html', '/about.html', '/contact.html', '/cookies.html',
+        '/fb-privacy.html', '/fb-terms.html', '/fb-disclaimer.html', '/fb-about.html', '/fb-contact.html', '/fb-cookies.html'
+    ];
     const isPolicyPage = policyPages.some(page => currentPath.endsWith(page));
 
     // Get current user email (Mock function - replace with real auth if available)
