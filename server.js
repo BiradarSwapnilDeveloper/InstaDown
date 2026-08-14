@@ -3,7 +3,7 @@ const cors = require('cors');
 const youtubedl = require('yt-dlp-exec');
 const path = require('path');
 const axios = require('axios');
-
+require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -48,6 +48,44 @@ function normalizeInstagramUrl(url) {
     }
 }
 
+// RapidAPI Helper for Instagram
+async function fetchInstagramWithRapidAPI(url) {
+    if (!process.env.RAPIDAPI_KEY || process.env.RAPIDAPI_KEY === 'your_rapid_api_key_here') {
+        return null;
+    }
+    
+    try {
+        const response = await axios.request({
+            method: 'GET',
+            url: 'https://instagram-downloader-download-instagram-videos-stories.p.rapidapi.com/index',
+            params: { url: url },
+            headers: {
+                'X-RapidAPI-Key': process.env.RAPIDAPI_KEY,
+                'X-RapidAPI-Host': 'instagram-downloader-download-instagram-videos-stories.p.rapidapi.com'
+            }
+        });
+        
+        if (response.data && response.data.media) {
+            return {
+                title: response.data.title || 'Instagram Reel',
+                thumbnail: response.data.thumbnail || null,
+                directUrl: response.data.media,
+                formats: [{
+                    itag: 'rapidapi_best',
+                    qualityLabel: 'Best Quality',
+                    container: 'mp4',
+                    contentLength: 'Unknown size',
+                    type: 'video',
+                    url: response.data.media
+                }]
+            };
+        }
+    } catch (e) {
+        console.error('RapidAPI Fetch Error:', e.message);
+    }
+    return null;
+}
+
 // Endpoint to fetch Instagram reel info
 app.post('/api/info', async (req, res) => {
     try {
@@ -66,6 +104,18 @@ app.post('/api/info', async (req, res) => {
         let cleanUrl = url;
         if (isInstagramUrl(url)) {
             cleanUrl = normalizeInstagramUrl(url);
+            
+            // Try RapidAPI first for Instagram
+            const rapidApiInfo = await fetchInstagramWithRapidAPI(cleanUrl);
+            if (rapidApiInfo) {
+                return res.json({
+                    title: rapidApiInfo.title,
+                    thumbnail: rapidApiInfo.thumbnail ? `/api/proxy-image?url=${encodeURIComponent(rapidApiInfo.thumbnail)}` : null,
+                    author: 'Instagram User',
+                    duration: 0,
+                    formats: rapidApiInfo.formats
+                });
+            }
         }
 
         const info = await youtubedl(cleanUrl, {
@@ -168,48 +218,57 @@ app.get('/api/download', async (req, res) => {
         }
 
         let cleanUrl = url;
-        if (isInstagramUrl(url)) {
-            cleanUrl = normalizeInstagramUrl(url);
-        }
-
-        // Fetch info to get direct URL
-        const info = await youtubedl(cleanUrl, {
-            dumpSingleJson: true,
-            noWarnings: true,
-            noCheckCertificate: true,
-            // Ensure we pick a combined format if itag is not specific
-            format: itag && itag !== 'best' ? itag : 'best[vcodec!=none][acodec!=none]/best',
-            addHeader: [
-                'User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            ],
-        });
-
         let directUrl = null;
         let extension = 'mp4';
         let filesize = 0;
+        let rawTitle = 'video_download';
 
-        if (itag && itag !== 'best' && info.formats) {
-            const format = info.formats.find(f => f.format_id === itag);
-            if (format && format.url) {
-                directUrl = format.url;
-                extension = format.ext || 'mp4';
-                filesize = format.filesize || format.filesize_approx || 0;
+        if (isInstagramUrl(url)) {
+            cleanUrl = normalizeInstagramUrl(url);
+            
+            // Try RapidAPI first for Instagram
+            const rapidApiInfo = await fetchInstagramWithRapidAPI(cleanUrl);
+            if (rapidApiInfo && rapidApiInfo.directUrl) {
+                directUrl = rapidApiInfo.directUrl;
+                rawTitle = rapidApiInfo.title;
             }
         }
 
-        // Fallback to info.url (best format URL)
-        if (!directUrl && info.url) {
-            directUrl = info.url;
-            extension = info.ext || 'mp4';
-            filesize = info.filesize || info.filesize_approx || 0;
-        }
-
         if (!directUrl) {
-            return res.status(400).send('Could not find a direct download URL for this reel.');
+            // Fetch info to get direct URL from yt-dlp
+            const info = await youtubedl(cleanUrl, {
+                dumpSingleJson: true,
+                noWarnings: true,
+                noCheckCertificate: true,
+                format: itag && itag !== 'best' ? itag : 'best[vcodec!=none][acodec!=none]/best',
+                addHeader: [
+                    'User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                ],
+            });
+
+            if (itag && itag !== 'best' && info.formats) {
+                const format = info.formats.find(f => f.format_id === itag);
+                if (format && format.url) {
+                    directUrl = format.url;
+                    extension = format.ext || 'mp4';
+                    filesize = format.filesize || format.filesize_approx || 0;
+                }
+            }
+
+            if (!directUrl && info.url) {
+                directUrl = info.url;
+                extension = info.ext || 'mp4';
+                filesize = info.filesize || info.filesize_approx || 0;
+            }
+
+            if (!directUrl) {
+                return res.status(400).send('Could not find a direct download URL for this reel.');
+            }
+            
+            rawTitle = info.title || info.fulltitle || 'video_download';
         }
 
         // Sanitize filename
-        const rawTitle = info.title || info.fulltitle || 'video_download';
         const filename = rawTitle.replace(/[^\w\s\-\.]/gi, '').trim() || 'video_download';
 
         res.setHeader('Content-Disposition', `attachment; filename="${filename}.${extension}"`);

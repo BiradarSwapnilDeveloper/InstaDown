@@ -7,14 +7,24 @@
     "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["instagram", "reels", "downloader", "hd"],
+  "keywords": [
+    "instagram",
+    "reels",
+    "downloader",
+    "hd"
+  ],
   "author": "InstaDown Team",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@bochilteam/scraper-instagram": "^5.0.0",
     "axios": "^1.13.6",
     "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "instagram-url-direct": "^2.0.7",
+    "nayan-media-downloader": "^0.0.1-security",
+    "snapinsta": "^1.0.5",
     "yt-dlp-exec": "^1.0.2"
   }
 }
