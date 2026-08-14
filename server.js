@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const youtubedl = require('yt-dlp-exec');
 const path = require('path');
 const axios = require('axios');
 require('dotenv').config();
@@ -22,19 +21,12 @@ function formatStorage(bytes) {
 
 // Validate Platform URLs
 function isInstagramUrl(url) {
-    return /instagram\.com\/(p|reel|reels|tv|stories)\//i.test(url) ||
-           /instagram\.com\/[^/]+\/(reel|p)\//i.test(url);
-}
-
-function isFacebookUrl(url) {
-    return /facebook\.com\//i.test(url) || 
-           /fb\.watch\//i.test(url) || 
-           /fb\.gg\//i.test(url) ||
-           /fb\.com\//i.test(url);
-}
-
-function isSupportedUrl(url) {
-    return isInstagramUrl(url) || isFacebookUrl(url);
+    try {
+        const u = new URL(url);
+        return u.hostname.includes('instagram.com');
+    } catch {
+        return false;
+    }
 }
 
 // Normalize instagram URL - strip query params that can cause auth issues
@@ -95,112 +87,31 @@ app.post('/api/info', async (req, res) => {
             return res.status(400).json({ error: 'URL is required.' });
         }
 
-        if (!isSupportedUrl(url)) {
+        if (!isInstagramUrl(url)) {
             return res.status(400).json({
-                error: 'Only Instagram and Facebook links are supported. Please paste a valid URL.'
+                error: 'Only Instagram Reel/Post links are supported. Please paste a valid Instagram URL.'
             });
         }
 
-        let cleanUrl = url;
-        if (isInstagramUrl(url)) {
-            cleanUrl = normalizeInstagramUrl(url);
-            
-            // Try RapidAPI first for Instagram
-            const rapidApiInfo = await fetchInstagramWithRapidAPI(cleanUrl);
-            if (rapidApiInfo) {
-                return res.json({
-                    title: rapidApiInfo.title,
-                    thumbnail: rapidApiInfo.thumbnail ? `/api/proxy-image?url=${encodeURIComponent(rapidApiInfo.thumbnail)}` : null,
-                    author: 'Instagram User',
-                    duration: 0,
-                    formats: rapidApiInfo.formats
-                });
-            }
-        }
-
-        const info = await youtubedl(cleanUrl, {
-            dumpSingleJson: true,
-            noWarnings: true,
-            noCallHome: true,
-            noCheckCertificate: true,
-            addHeader: [
-                'User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept-Language:en-US,en;q=0.9',
-            ],
-        });
-
-        // Extract video formats (with both video+audio in same stream if possible)
-        let formats = [];
-
-        if (info.formats) {
-            // Filter for formats that have a URL and have BOTH video and audio!
-            // Instagram high-quality (1080p) is often split. Facebook has varying formats.
-            // Since we proxy the direct URL, we MUST pick a single file that contains both unless yt-dlp merges them (which we aren't doing natively on the fly).
-            formats = info.formats
-                .filter(f => f.url && f.vcodec !== 'none' && f.acodec !== 'none' && f.acodec !== null)
-                .map(f => {
-                    let q = 'Best Quality';
-                    if (f.height) q = `${f.height}p`;
-                    else if (f.format_note) q = f.format_note;
-                    else if (f.resolution) q = f.resolution;
-
-                    return {
-                        itag: f.format_id,
-                        qualityLabel: q,
-                        container: f.ext || 'mp4',
-                        contentLength: formatStorage(f.filesize || f.filesize_approx),
-                        height: f.height || 0,
-                        width: f.width || 0,
-                        vcodec: f.vcodec,
-                        acodec: f.acodec,
-                        type: 'video'
-                    };
-                })
-                // Sort by height descending
-                .sort((a, b) => b.height - a.height);
-
-            // Deduplicate by quality label and keep unique ones
-            const seen = new Set();
-            const uniqueFormats = [];
-            for (const f of formats) {
-                if (!seen.has(f.qualityLabel)) {
-                    seen.add(f.qualityLabel);
-                    uniqueFormats.push(f);
-                }
-            }
-            formats = uniqueFormats.slice(0, 5); // Show up to 5 best options
-        }
-
-        // Fallback: use the best single format yt-dlp picks (that has audio)
-        if (formats.length === 0) {
-            formats.push({
-                itag: 'best[vcodec!=none][acodec!=none]/best',
-                qualityLabel: 'Best Combined',
-                container: 'mp4',
-                contentLength: 'Unknown size',
-                type: 'video'
+        const cleanUrl = normalizeInstagramUrl(url);
+        
+        const rapidApiInfo = await fetchInstagramWithRapidAPI(cleanUrl);
+        
+        if (rapidApiInfo) {
+            return res.json({
+                title: rapidApiInfo.title,
+                thumbnail: rapidApiInfo.thumbnail ? `/api/proxy-image?url=${encodeURIComponent(rapidApiInfo.thumbnail)}` : null,
+                author: 'Instagram User',
+                duration: 0,
+                formats: rapidApiInfo.formats
             });
+        } else {
+            return res.status(500).json({ error: 'Failed to fetch video info. Please make sure your RapidAPI key is configured correctly.' });
         }
-
-        res.json({
-            title: info.title || info.fulltitle || 'Instagram Reel',
-            thumbnail: info.thumbnail ? `/api/proxy-image?url=${encodeURIComponent(info.thumbnail)}` : null,
-            author: info.uploader || info.channel || info.uploader_id || 'Instagram User',
-            duration: info.duration,
-            formats: formats
-        });
 
     } catch (error) {
         console.error('Error fetching info:', error.message || error);
-
-        let errorMsg = 'Failed to fetch video info. Make sure the post is public and the URL is valid.';
-        if (error.message && error.message.includes('Private')) {
-            errorMsg = 'This post is private. Please use a public reel or post URL.';
-        } else if (error.message && error.message.includes('login')) {
-            errorMsg = 'This platform requires login for this content. Only public posts are supported.';
-        }
-
-        res.status(500).json({ error: errorMsg });
+        res.status(500).json({ error: 'Failed to fetch video info. Make sure the post is public and the URL is valid.' });
     }
 });
 
@@ -213,69 +124,27 @@ app.get('/api/download', async (req, res) => {
             return res.status(400).send('URL is required');
         }
 
-        if (!isSupportedUrl(url)) {
-            return res.status(400).send('Only Instagram and Facebook URLs are supported');
+        if (!isInstagramUrl(url)) {
+            return res.status(400).send('Only Instagram URLs are supported');
         }
 
-        let cleanUrl = url;
-        let directUrl = null;
-        let extension = 'mp4';
-        let filesize = 0;
-        let rawTitle = 'video_download';
-
-        if (isInstagramUrl(url)) {
-            cleanUrl = normalizeInstagramUrl(url);
+        const cleanUrl = normalizeInstagramUrl(url);
             
-            // Try RapidAPI first for Instagram
-            const rapidApiInfo = await fetchInstagramWithRapidAPI(cleanUrl);
-            if (rapidApiInfo && rapidApiInfo.directUrl) {
-                directUrl = rapidApiInfo.directUrl;
-                rawTitle = rapidApiInfo.title;
-            }
+        const rapidApiInfo = await fetchInstagramWithRapidAPI(cleanUrl);
+        
+        if (!rapidApiInfo || !rapidApiInfo.directUrl) {
+            return res.status(400).send('Could not find a direct download URL for this reel. Ensure RapidAPI key is set.');
         }
 
-        if (!directUrl) {
-            // Fetch info to get direct URL from yt-dlp
-            const info = await youtubedl(cleanUrl, {
-                dumpSingleJson: true,
-                noWarnings: true,
-                noCheckCertificate: true,
-                format: itag && itag !== 'best' ? itag : 'best[vcodec!=none][acodec!=none]/best',
-                addHeader: [
-                    'User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                ],
-            });
-
-            if (itag && itag !== 'best' && info.formats) {
-                const format = info.formats.find(f => f.format_id === itag);
-                if (format && format.url) {
-                    directUrl = format.url;
-                    extension = format.ext || 'mp4';
-                    filesize = format.filesize || format.filesize_approx || 0;
-                }
-            }
-
-            if (!directUrl && info.url) {
-                directUrl = info.url;
-                extension = info.ext || 'mp4';
-                filesize = info.filesize || info.filesize_approx || 0;
-            }
-
-            if (!directUrl) {
-                return res.status(400).send('Could not find a direct download URL for this reel.');
-            }
-            
-            rawTitle = info.title || info.fulltitle || 'video_download';
-        }
+        const directUrl = rapidApiInfo.directUrl;
+        const rawTitle = rapidApiInfo.title || 'video_download';
+        const extension = 'mp4';
 
         // Sanitize filename
         const filename = rawTitle.replace(/[^\w\s\-\.]/gi, '').trim() || 'video_download';
 
         res.setHeader('Content-Disposition', `attachment; filename="${filename}.${extension}"`);
         res.setHeader('Content-Type', 'video/mp4');
-        if (filesize) {
-            res.setHeader('Content-Length', filesize);
-        }
 
         // Proxy stream
         const proxyResponse = await axios({
@@ -286,12 +155,12 @@ app.get('/api/download', async (req, res) => {
             maxRedirects: 10,
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Referer': isFacebookUrl(url) ? 'https://www.facebook.com/' : 'https://www.instagram.com/',
+                'Referer': 'https://www.instagram.com/',
                 'Accept': '*/*',
             }
         });
 
-        if (!filesize && proxyResponse.headers['content-length']) {
+        if (proxyResponse.headers['content-length']) {
             res.setHeader('Content-Length', proxyResponse.headers['content-length']);
         }
 
@@ -324,15 +193,13 @@ app.get('/api/proxy-image', async (req, res) => {
         const { url } = req.query;
         if (!url) return res.status(400).send('URL required');
 
-        const isFb = url.includes('fbcdn.net');
-
         const response = await axios({
             url: url,
             method: 'GET',
             responseType: 'stream',
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Referer': isFb ? 'https://www.facebook.com/' : 'https://www.instagram.com/'
+                'Referer': 'https://www.instagram.com/'
             }
         });
 
